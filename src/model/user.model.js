@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-
+import bcrypt from "bcrypt";
 const userSchema = new Schema(
   {
     username: {
@@ -34,8 +34,21 @@ const userSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Vedio",
     },
+    password: {
+      type: String,
+      required: [true, "Password is Required"],
+    },
+    RrefreshToken: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
 
-export const model = mongoose.model("User", userSchema);
+// pre middleware
+User.pre("save", async function (next) {
+  this.password = bcrypt.hash(this.password, 10);
+  next();
+});
+
+export const Usermodel = mongoose.model("User", userSchema);
