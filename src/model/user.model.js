@@ -47,8 +47,15 @@ const userSchema = new Schema(
 
 // pre middleware
 User.pre("save", async function (next) {
-  this.password = bcrypt.hash(this.password, 10);
-  next();
+  if (this.isModified("password")) {
+    this.password = bcrypt.hash(this.password, 10);
+    next();
+  } else {
+    next();
+  }
 });
+User.methods.isCorrectPassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 
 export const Usermodel = mongoose.model("User", userSchema);
