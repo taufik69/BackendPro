@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 const app = express();
+
 /**
  * todo : All middleware
  * *motive: Middleware are used to configuration
@@ -25,5 +26,11 @@ app.use(
 );
 app.use(express.static("public"));
 app.use(cookieParser());
+
+/**
+ * import route
+ */
+import { UserRouter } from "./routes/user.routes.js";
+app.use("/users", UserRouter);
 
 export { app };
