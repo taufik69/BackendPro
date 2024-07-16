@@ -31,6 +31,6 @@ app.use(cookieParser());
  * import route
  */
 import { UserRouter } from "./routes/user.routes.js";
-app.use("/users", UserRouter);
+app.use("/api/vi/users", UserRouter);
 
 export { app };
