@@ -46,7 +46,7 @@ const userSchema = new Schema(
 );
 
 // pre middleware
-User.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = bcrypt.hash(this.password, 10);
     next();
@@ -54,7 +54,7 @@ User.pre("save", async function (next) {
     next();
   }
 });
-User.methods.isCorrectPassword = async function (password) {
+userSchema.methods.isCorrectPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
