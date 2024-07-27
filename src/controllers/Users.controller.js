@@ -12,37 +12,38 @@ const UserRegistration = asyncHandler(async (req, res) => {
   // remove password and refresh token field from response
   // check for users creation
   // return res
+
   const { fullName, email, username, password } = req.body;
 
   if (!fullName) {
-    return res.status(401).json(new ApiResponse(401, null, "Missing FullName"));
+    throw new ApiError(401, "Missing FullName");
   }
   if (!email) {
-    return res.status(401).json(new ApiResponse(401, null, "Eamil FullName"));
+    throw new ApiError(401, "Missing email");
   }
   if (!username) {
-    return res.status(401).json(new ApiResponse(401, null, "UserName Missing"));
+    throw new ApiError(401, "Missing username");
   }
   if (!password) {
-    return res
-      .status(401)
-      .json(new ApiResponse(401, null, "password FullName"));
-  }
-  const avatar = req.files?.avatar;
-  const coverImage = req.files?.coverImage;
-
-  if (!avatar) {
-    return res.status(401).json(new ApiResponse(401, null, "avatar Missing"));
-  }
-
-  if (!coverImage) {
-    return res.status(401).json(new ApiResponse(401, null, "avatar Missing"));
+    throw new ApiError(401, "Missing password");
   }
 
   /**
    * *check if username , email and fullname is already exist
    */
 
+  const coverImage = req.files?.coverImage;
+  const avatar = req.files?.avatar;
+
+  if (!coverImage) {
+    throw new ApiError(401, "Missing coverImage");
+  }
+
+  if (!avatar) {
+    throw new ApiError(401, "Missing avatar");
+  }
+
+  return;
   const isExistUser = await Usermodel.findOne({
     $or: [{ fullName }, { email }, { username }, { password }],
   });
@@ -50,9 +51,8 @@ const UserRegistration = asyncHandler(async (req, res) => {
   /**
    * todo : created data
    */
-  const users = await new Usermodel.create({})
-
-  console.log(isExistUser);
+  const users = await new Usermodel.create({});
+  console.log(users);
 });
 
 export { UserRegistration };
