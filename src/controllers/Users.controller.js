@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/AsyncHandaler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Usermodel } from "../model/user.model.js";
+import { cloudinaryFileUpload } from "../utils/Cloudinary.js";
 const UserRegistration = asyncHandler(async (req, res) => {
   //get users validation from frontend
   //validation
@@ -35,24 +36,51 @@ const UserRegistration = asyncHandler(async (req, res) => {
   const coverImage = req.files?.coverImage;
   const avatar = req.files?.avatar;
 
-  if (!coverImage) {
-    throw new ApiError(401, "Missing coverImage");
-  }
-
   if (!avatar) {
     throw new ApiError(401, "Missing avatar");
   }
 
-  return;
-  const isExistUser = await Usermodel.findOne({
+  const isExistUser = await Usermodel.find({
     $or: [{ fullName }, { email }, { username }, { password }],
   });
+
+  if (isExistUser.length) {
+    throw new ApiError(401, "User already exist");
+  }
+
+  /**
+   * todo : upload file in cloudinary
+   * function : cloudinaryFileUpload(parms:localpath)
+   */
+
+  const avatarCloudinary = await cloudinaryFileUpload(avatar[0].path);
+  const coverImageCloudinary = await cloudinaryFileUpload(
+    coverImage?.[0]?.path
+  );
 
   /**
    * todo : created data
    */
-  const users = await new Usermodel.create({});
-  console.log(users);
+
+  const users = await new Usermodel({
+    fullName,
+    email,
+    username: username.toLowerCase(),
+    password,
+    avatar: avatarCloudinary.url,
+    coverImage: coverImageCloudinary?.url ?? "",
+  }).save();
+
+  /**
+   * remove password ,RrefreshToken from users instance
+   */
+  const createdUser = await Usermodel.findById(users._id).select(
+    "-password -RrefreshToken"
+  );
+
+  res
+    .status(201)
+    .json(new ApiResponse(200, createdUser, "User Registration Successfull"));
 });
 
 export { UserRegistration };
