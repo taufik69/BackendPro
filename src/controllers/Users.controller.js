@@ -101,8 +101,8 @@ const UserLogin = asyncHandler(async (req, res) => {
       const acessToken = await user.generateAccessToken();
       const RrefreshToken = await user.generateRefreshToken();
       user.RrefreshToken = RrefreshToken;
-      user.save({ validateBeforeSave: false });
-      console.log(user);
+      await user.save({ validateBeforeSave: false });
+      return { RrefreshToken, acessToken };
     } catch (error) {
       throw new ApiError(401, error.message);
     }
@@ -120,7 +120,25 @@ const UserLogin = asyncHandler(async (req, res) => {
     throw new ApiError(401, "User Credential Wrong  !!");
   }
 
-  generateAcessAndRefreshToken(ExistUser._id);
+  const { RrefreshToken, acessToken } = await generateAcessAndRefreshToken(
+    ExistUser._id
+  );
+  // eixist user have all field , but i dont want to need some field like refreshtoken and password
+
+  const loggedUser = await Usermodel.findById(ExistUser._id).select(
+    "-RrefreshToken  -password"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  res
+    .status(200)
+    .cookie("accessToken", acessToken, options)
+    .cookie("refreshToken", RrefreshToken, options)
+    .json(new ApiResponse(200, loggedUser, "Login Sucessfull"));
 });
 
 export { UserRegistration, UserLogin };
