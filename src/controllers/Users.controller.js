@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Usermodel } from "../model/user.model.js";
 import { cloudinaryFileUpload } from "../utils/Cloudinary.js";
+
 const UserRegistration = asyncHandler(async (req, res) => {
   //get users validation from frontend
   //validation
@@ -83,4 +84,43 @@ const UserRegistration = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User Registration Successfull"));
 });
 
-export { UserRegistration };
+// login the users
+
+const UserLogin = asyncHandler(async (req, res) => {
+  /**
+   * todo : 1) extract data from req.body
+   * todo : 2) users can gives email or username anything , but accept both of this
+   * todo : 3) find the user if already this user register
+   * todo : 4) checking the password
+   * todo : 5) aceess and refresh token
+   * todo : 6) send access toekn via cookies
+   */
+  const generateAcessAndRefreshToken = async (userId) => {
+    try {
+      const user = await Usermodel.findById(userId);
+      const acessToken = await user.generateAccessToken();
+      const RrefreshToken = await user.generateRefreshToken();
+      user.RrefreshToken = RrefreshToken;
+      user.save({ validateBeforeSave: false });
+      console.log(user);
+    } catch (error) {
+      throw new ApiError(401, error.message);
+    }
+  };
+
+  const { username, email, password } = req.body;
+
+  const ExistUser = await Usermodel.findOne({ $or: [{ username }, { email }] });
+  if (!ExistUser) {
+    throw new ApiError(401, "User not found !!");
+  }
+
+  const isPasswordCorrect = await ExistUser.isCorrectPassword(password);
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "User Credential Wrong  !!");
+  }
+
+  generateAcessAndRefreshToken(ExistUser._id);
+});
+
+export { UserRegistration, UserLogin };
