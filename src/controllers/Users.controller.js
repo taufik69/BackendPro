@@ -134,11 +134,21 @@ const UserLogin = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  res
+  return res
     .status(200)
     .cookie("accessToken", acessToken, options)
     .cookie("refreshToken", RrefreshToken, options)
-    .json(new ApiResponse(200, loggedUser, "Login Sucessfull"));
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedUser,
+          acessToken: acessToken,
+          RrefreshToken: RrefreshToken,
+        },
+        "Login Sucessfull"
+      )
+    );
 });
 
 export { UserRegistration, UserLogin };
