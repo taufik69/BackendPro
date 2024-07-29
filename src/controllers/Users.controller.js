@@ -151,4 +151,32 @@ const UserLogin = asyncHandler(async (req, res) => {
     );
 });
 
-export { UserRegistration, UserLogin };
+// logout the user
+
+const userLogout = asyncHandler(async (req, res) => {
+  // undifined the refresh token
+  let hel = await Usermodel.findByIdAndUpdate(
+    { _id: req.user?._id },
+    {
+      $set: {
+        RrefreshToken: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  // now clear the cookie from the server
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, hel, "Logout Sucessfull"));
+});
+
+export { UserRegistration, UserLogin, userLogout };
