@@ -13,6 +13,8 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Unauthorize access");
     }
 
+    console.log("from verify middleware", token);
+
     /**
      * todo : check  the token in valid i mean is the token in real
      */

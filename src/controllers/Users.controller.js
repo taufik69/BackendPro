@@ -205,8 +205,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Invalid Refresh Token user not found");
     }
 
-    console.log(user);
-
     if (incomingRefreshToken !== user.RrefreshToken) {
       throw new ApiError(401, "Invalid Refresh Token");
     }
@@ -216,12 +214,40 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: true,
     };
 
-    const { newRrefreshToken } = await generateAcessAndRefreshToken(user._id);
+    const { RrefreshToken, acessToken } = await generateAcessAndRefreshToken(
+      user._id
+    );
 
-    console.log(newRrefreshToken);
+    return res
+      .status(200)
+      .cookie("accessToken", acessToken, options)
+      .cookie("refreshToken", RrefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            acessToken: acessToken,
+            RrefreshToken: RrefreshToken,
+          },
+          "Access Token  Refresh"
+        )
+      );
   } catch (error) {
     throw new ApiError(401, error?.message);
   }
 });
 
-export { UserRegistration, UserLogin, userLogout, refreshAccessToken };
+// change password
+
+const changeOldPassword = asyncHandler(async (req, res) => {
+  const { newPassword, oldpassword } = req.body;
+  console.log(req.user);
+});
+
+export {
+  UserRegistration,
+  UserLogin,
+  userLogout,
+  refreshAccessToken,
+  changeOldPassword,
+};
