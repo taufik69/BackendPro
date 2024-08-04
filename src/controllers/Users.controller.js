@@ -241,12 +241,54 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeOldPassword = asyncHandler(async (req, res) => {
   const { newPassword, oldpassword } = req.body;
-  console.log(req.user);
+
+  const user = await Usermodel.findById(req.user._id);
+  const isCorrectPassword = await user.isCorrectPassword(oldpassword);
+
+  if (!isCorrectPassword) {
+    throw new ApiError(401, "old Password invalid");
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password Changed Succesfully"));
+});
+
+// get current user
+const getCurrentUser = asyncHandler(async (req, res) => {
+  res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Password Changed Succesfully"));
+});
+
+//update account details
+const updateAccouontDetails = asyncHandler(async (req, res) => {
+  const { username, email } = req.body;
+  if (!username || !email) {
+    throw new ApiError(401, "userName or email missing !!");
+  }
+
+  const updateUser = await Usermodel.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        username,
+        email,
+      },
+    },
+    { new: true }
+  );
+  res
+    .status(200)
+    .json(new ApiResponse(200, updateUser, "Profile update Sucessfull"));
 });
 
 export {
+  getCurrentUser,
   UserRegistration,
   UserLogin,
+  updateAccouontDetails,
   userLogout,
   refreshAccessToken,
   changeOldPassword,
