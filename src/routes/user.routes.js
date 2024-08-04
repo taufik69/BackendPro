@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   updateAccouontDetails,
   updateAvatar,
+  updateCoverImage,
 } from "../controllers/Users.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -32,5 +33,10 @@ UserRouter.route("/update-avatar").patch(
   verifyJwt,
   upload.single("avatar"),
   updateAvatar
+);
+UserRouter.route("/update-coverImage").patch(
+  verifyJwt,
+  upload.single("coverImage"),
+  updateCoverImage
 );
 export { UserRouter };

@@ -327,7 +327,49 @@ const updateAvatar = asyncHandler(async (req, res) => {
   }
 });
 
+// Update coverImage controller
+const updateCoverImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, null, "Missing Cover Image !!");
+  }
+  const coverImageUrl = req.user?.coverImage.split("/");
+  const coverImagePath = coverImageUrl[coverImageUrl.length - 1].split(".")[0];
+
+  try {
+    const deletePreviousCoverImage = await deleteCloudinaryFile(coverImagePath);
+    if (
+      deletePreviousCoverImage?.deleted?.coeqedzz5d75cjx2zsuf === "not_found"
+    ) {
+      throw new ApiError(500, "Server Error CoverImage delete Failed !!");
+    }
+
+    const newCoverImageUpload = await cloudinaryFileUpload(req.file?.path);
+
+    if (!newCoverImageUpload) {
+      throw new ApiError(500, "Server Error CoverImage upload failed !!");
+    }
+    const user = await Usermodel.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          coverImage: newCoverImageUpload.url,
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "coverImage update succesfull"));
+  } catch (error) {
+    throw new ApiError(500, error);
+  }
+});
+
 export {
+  updateCoverImage,
   updateAvatar,
   getCurrentUser,
   UserRegistration,
