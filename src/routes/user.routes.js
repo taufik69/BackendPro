@@ -7,6 +7,7 @@ import {
   changeOldPassword,
   getCurrentUser,
   updateAccouontDetails,
+  updateAvatar,
 } from "../controllers/Users.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -27,4 +28,9 @@ UserRouter.route("/access-token").post(refreshAccessToken);
 UserRouter.route("/changePassword").post(verifyJwt, changeOldPassword);
 UserRouter.route("/get-currentUser").get(verifyJwt, getCurrentUser);
 UserRouter.route("/update-Accouont").post(verifyJwt, updateAccouontDetails);
+UserRouter.route("/update-avatar").patch(
+  verifyJwt,
+  upload.single("avatar"),
+  updateAvatar
+);
 export { UserRouter };

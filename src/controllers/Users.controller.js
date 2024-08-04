@@ -2,7 +2,10 @@ import { asyncHandler } from "../utils/AsyncHandaler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Usermodel } from "../model/user.model.js";
-import { cloudinaryFileUpload } from "../utils/Cloudinary.js";
+import {
+  cloudinaryFileUpload,
+  deleteCloudinaryFile,
+} from "../utils/Cloudinary.js";
 import jwt from "jsonwebtoken";
 
 const generateAcessAndRefreshToken = async (userId) => {
@@ -278,13 +281,54 @@ const updateAccouontDetails = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  );
+  ).select("-password");
   res
     .status(200)
     .json(new ApiResponse(200, updateUser, "Profile update Sucessfull"));
 });
 
+//update avatar
+const updateAvatar = asyncHandler(async (req, res) => {
+  const avatarPath = req.file?.path;
+  if (!avatarPath) {
+    throw new ApiError(401, "Avatar File Missing !!");
+  }
+  const avatarUrl = req.user?.avatar;
+  const avatarCloudinaryID = avatarUrl?.split("/");
+  const cloudinaryUrl = avatarCloudinaryID[avatarCloudinaryID.length - 1];
+  const cloudinaryImgId = cloudinaryUrl.split(".")[0];
+  try {
+    await deleteCloudinaryFile(cloudinaryImgId);
+    const uploadNewImgae = await cloudinaryFileUpload(req.file?.path);
+    if (!uploadNewImgae) {
+      throw new ApiError(200, null, "Avatar upload Failed");
+    }
+
+    const user = await Usermodel.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          avatar: uploadNewImgae.url,
+        },
+      },
+      { new: true }
+    ).select("-password");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Avatar image updated successfully"));
+  } catch (error) {
+    throw new ApiError(
+      501,
+      null,
+      "Server Error !! Avatar Updated Failed ",
+      error.message
+    );
+  }
+});
+
 export {
+  updateAvatar,
   getCurrentUser,
   UserRegistration,
   UserLogin,

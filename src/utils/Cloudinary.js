@@ -1,5 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { ApiError } from "./ApiError.js";
+import { log } from "console";
 
 // Configuration
 cloudinary.config({
@@ -33,4 +35,29 @@ const cloudinaryFileUpload = async (localFilePath) => {
   }
 };
 
-export { cloudinaryFileUpload };
+const deleteCloudinaryFile = async (localFilePath = "taufik") => {
+  try {
+    if (!localFilePath) {
+      return null;
+    }
+
+    //another code of deleting cloudinary image
+    // const afterDelete = await cloudinary.uploader.destroy(
+    //   "zegjtgifa1wc4rtrvep7"
+    // );
+
+    const afterdeleted = await cloudinary.api.delete_resources(
+      [localFilePath],
+      {
+        type: "upload",
+        resource_type: "image",
+      }
+    );
+
+    return afterdeleted;
+  } catch (error) {
+    throw new ApiError(501, "cloudinary image delete failded " + error);
+  }
+};
+
+export { cloudinaryFileUpload, deleteCloudinaryFile };
